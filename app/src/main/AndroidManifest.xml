@@ -31,6 +31,18 @@
             android:exported="true"
             android:label="Actividad Principal"
             android:theme="@style/Theme.Taller4" />
+        <receiver
+            android:name=".MyAppWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/appwidget_info" />
+        </receiver>
+
 
     </application>
 
