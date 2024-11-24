@@ -17,7 +17,6 @@ class MyAppWidgetProvider : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray
     ) {
-        // Actualizar cada widget
         for (appWidgetId in appWidgetIds) {
             updateAppWidget(context, appWidgetManager, appWidgetId)
         }
@@ -27,25 +26,19 @@ class MyAppWidgetProvider : AppWidgetProvider() {
         private const val PREFS_NAME = "com.example.taller4.widget_prefs"
         private const val PREF_COUNT_KEY = "item_count"
 
-        /**
-         * Guarda el número de elementos en las SharedPreferences.
-         */
+        // Guarda el número de elementos
         fun saveItemCount(context: Context, count: Int) {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             prefs.edit().putInt(PREF_COUNT_KEY, count).apply()
         }
 
-        /**
-         * Obtiene el número de elementos desde las SharedPreferences.
-         */
+        // Obtiene el número de elementos
         fun getItemCount(context: Context): Int {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             return prefs.getInt(PREF_COUNT_KEY, 0)
         }
 
-        /**
-         * Actualiza la vista del widget.
-         */
+        // Actualiza las vistas del widget
         fun updateAppWidgetViews(context: Context): RemoteViews {
             val currentDate = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
             val itemCount = getItemCount(context)
@@ -58,9 +51,7 @@ class MyAppWidgetProvider : AppWidgetProvider() {
             return views
         }
 
-        /**
-         * Actualiza un widget específico.
-         */
+        // Actualiza el contenido del widget
         private fun updateAppWidget(
             context: Context,
             appWidgetManager: AppWidgetManager,
@@ -68,6 +59,7 @@ class MyAppWidgetProvider : AppWidgetProvider() {
         ) {
             val views = updateAppWidgetViews(context)
 
+            // Configurar el botón para actualizar el widget
             val intent = Intent(context, MyAppWidgetProvider::class.java)
             intent.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
             intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, intArrayOf(appWidgetId))
@@ -77,12 +69,11 @@ class MyAppWidgetProvider : AppWidgetProvider() {
             )
             views.setOnClickPendingIntent(R.id.widget_button, pendingIntent)
 
+            // Aplicar la actualización al widget
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
 
-        /**
-         * Notifica a todos los widgets para que se actualicen.
-         */
+        // Notificar a todos los widgets para actualizarse
         fun notifyWidgetUpdate(context: Context) {
             val appWidgetManager = AppWidgetManager.getInstance(context)
             val widgetIds = appWidgetManager.getAppWidgetIds(
@@ -90,6 +81,26 @@ class MyAppWidgetProvider : AppWidgetProvider() {
             )
             for (widgetId in widgetIds) {
                 updateAppWidget(context, appWidgetManager, widgetId)
+            }
+        }
+    }
+
+    override fun onReceive(context: Context, intent: Intent) {
+        super.onReceive(context, intent)
+
+        if (intent.action == AppWidgetManager.ACTION_APPWIDGET_UPDATE) {
+            // Actualizar todos los widgets con nueva hora
+            val appWidgetManager = AppWidgetManager.getInstance(context)
+            val widgetIds = intent.getIntArrayExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS)
+
+            // Forzar actualización de cada widget
+            if (widgetIds != null) {
+                for (widgetId in widgetIds) {
+                    updateAppWidget(context, appWidgetManager, widgetId)
+                }
+            } else {
+                // Si no se pasan IDs, actualizar todos los widgets globalmente
+                notifyWidgetUpdate(context)
             }
         }
     }
