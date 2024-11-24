@@ -1,9 +1,13 @@
 package com.example.taller4
 
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.EditText
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -12,6 +16,8 @@ import androidx.recyclerview.widget.RecyclerView
 
 class ItemListFragment : Fragment() {
     private lateinit var sharedViewModel: SharedViewModel
+    private val items = mutableListOf("Item 1", "Item 2", "Item 3", "Item 4")
+    private lateinit var adapter: ItemAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -24,17 +30,36 @@ class ItemListFragment : Fragment() {
         val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(context)
 
-        // Lista de elementos
-        val items = listOf("Item 1", "Item 2", "Item 3", "Item 4")
-
-        // Guarda el número de elementos en las SharedPreferences
-        MyAppWidgetProvider.saveItemCount(requireContext(), items.size)
-
-        val adapter = ItemAdapter(items) { selectedItem ->
+        // Configurar el adaptador con la lista inicial
+        adapter = ItemAdapter(items) { selectedItem ->
             sharedViewModel.selectItem(selectedItem)
             (activity as MainAppActivity).navigateToDetailFragment()
         }
         recyclerView.adapter = adapter
+
+        // Configurar el botón de añadir
+        val inputField = view.findViewById<EditText>(R.id.item_input)
+        val addButton = view.findViewById<Button>(R.id.add_item_button)
+
+        addButton.setOnClickListener {
+            val newItem = inputField.text.toString()
+            if (newItem.isNotBlank()) {
+                // Agregar el nuevo elemento a la lista
+                items.add(newItem)
+                adapter.notifyItemInserted(items.size - 1)
+                recyclerView.scrollToPosition(items.size - 1)
+
+                // Limpiar el campo de texto
+                inputField.text.clear()
+
+                // Actualizar el widget
+                MyAppWidgetProvider.saveItemCount(requireContext(), items.size)
+                AppWidgetManager.getInstance(requireContext()).updateAppWidget(
+                    ComponentName(requireContext(), MyAppWidgetProvider::class.java),
+                    MyAppWidgetProvider.updateAppWidgetViews(requireContext())
+                )
+            }
+        }
 
         return view
     }
