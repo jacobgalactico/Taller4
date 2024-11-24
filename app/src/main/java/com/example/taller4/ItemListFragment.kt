@@ -24,7 +24,12 @@ class ItemListFragment : Fragment() {
         val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(context)
 
+        // Lista de elementos
         val items = listOf("Item 1", "Item 2", "Item 3", "Item 4")
+
+        // Guarda el número de elementos en las SharedPreferences
+        MyAppWidgetProvider.saveItemCount(requireContext(), items.size)
+
         val adapter = ItemAdapter(items) { selectedItem ->
             sharedViewModel.selectItem(selectedItem)
             (activity as MainAppActivity).navigateToDetailFragment()

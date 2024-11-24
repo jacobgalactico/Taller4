@@ -23,18 +23,33 @@ class MyAppWidgetProvider : AppWidgetProvider() {
     }
 
     companion object {
+        private const val PREFS_NAME = "com.example.taller4.widget_prefs"
+        private const val PREF_COUNT_KEY = "item_count"
+
+        fun saveItemCount(context: Context, count: Int) {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            prefs.edit().putInt(PREF_COUNT_KEY, count).apply()
+        }
+
+        fun getItemCount(context: Context): Int {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            return prefs.getInt(PREF_COUNT_KEY, 0)
+        }
+
         private fun updateAppWidget(
             context: Context,
             appWidgetManager: AppWidgetManager,
             appWidgetId: Int
         ) {
-            // Actualizar datos en el widget
             val currentDate = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
+            val itemCount = getItemCount(context)
 
             val views = RemoteViews(context.packageName, R.layout.widget_layout)
-            views.setTextViewText(R.id.widget_text, "Última actualización: $currentDate")
+            views.setTextViewText(
+                R.id.widget_text,
+                "Última actualización: $currentDate\nTotal de elementos: $itemCount"
+            )
 
-            // Configurar el botón para actualizar
             val intent = Intent(context, MyAppWidgetProvider::class.java)
             intent.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
             intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, intArrayOf(appWidgetId))
@@ -44,8 +59,8 @@ class MyAppWidgetProvider : AppWidgetProvider() {
             )
             views.setOnClickPendingIntent(R.id.widget_button, pendingIntent)
 
-            // Actualizar el widget
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
     }
+
 }
